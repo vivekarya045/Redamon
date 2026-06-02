@@ -40,7 +40,7 @@ TOOL_MUTEX_GROUPS = {
 
 DEFAULT_AGENT_SETTINGS: dict[str, Any] = {
     # LLM Configuration
-    'OPENAI_MODEL': 'claude-opus-4-6',
+    'OPENAI_MODEL': 'openai_compat/qwen3:14b',
     'INFORMATIONAL_SYSTEM_PROMPT': '',
     'EXPL_SYSTEM_PROMPT': '',
     'POST_EXPL_SYSTEM_PROMPT': '',

@@ -4,7 +4,7 @@ declare global {
   var neo4jDriver: Driver | undefined
 }
 
-const uri = process.env.NEO4J_URI || 'bolt://localhost:7687'
+const uri = process.env.NEO4J_URI || 'bolt://neo4j:7687'
 const user = process.env.NEO4J_USER || 'neo4j'
 const password = process.env.NEO4J_PASSWORD || 'password'
 

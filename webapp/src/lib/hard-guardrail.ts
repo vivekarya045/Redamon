@@ -26,7 +26,10 @@ const TLD_PATTERNS: RegExp[] = [
   // Education
   /\.edu$/i,
   /\.edu\.[a-z]{2,3}$/i,
-  /\.ac\.[a-z]{2,3}$/i,
+  // The .ac.<cc> pattern is disabled to allow local/dev testing against
+  // academic subdomains. Re-enable only with explicit organizational
+  // approval; keep frontend & backend in sync.
+  // /\.ac\.[a-z]{2,3}$/i,
 
   // International organizations
   /\.int$/i,

@@ -82,7 +82,7 @@ class AgentOrchestrator:
     def __init__(self):
         """Initialize the orchestrator with configuration."""
         # Infrastructure-only env vars (stay in docker-compose)
-        self.neo4j_uri = os.getenv("NEO4J_URI", "bolt://localhost:7687")
+        self.neo4j_uri = os.getenv("NEO4J_URI", "bolt://localhost:17687")
         self.neo4j_user = os.getenv("NEO4J_USER", "neo4j")
         self.neo4j_password = os.getenv("NEO4J_PASSWORD")
 

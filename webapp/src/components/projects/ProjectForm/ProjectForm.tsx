@@ -813,7 +813,7 @@ export function ProjectForm({
         onLoadUserPreset={handleLoadUserPreset}
         currentPresetId={appliedPreset?.id}
         userId={userId}
-        model={(formData.agentOpenaiModel as string) || 'claude-opus-4-6'}
+        model={(formData.agentOpenaiModel as string) || 'openai_compat/qwen3:14b'}
       />
 
       {/* User Preset: Save modal */}

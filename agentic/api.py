@@ -473,6 +473,24 @@ def _build_llm_with_model_for_user(model_name: str, user_id: Optional[str]):
     qwen_p = _resolve_provider_key(user_providers, "qwen")
     xai_p = _resolve_provider_key(user_providers, "xai")
     mistral_p = _resolve_provider_key(user_providers, "mistral")
+
+    custom_llm_config = None
+    if model_name.startswith("custom/"):
+        config_id = model_name[len("custom/"):]
+        for p in user_providers:
+            if p.get("id") == config_id:
+                custom_llm_config = p
+                break
+
+        if not custom_llm_config and user_providers:
+            # Provider ID is stale (deleted & recreated). Fall back to the
+            # user's first available provider so the endpoint can still run.
+            custom_llm_config = user_providers[0]
+            logger.warning(
+                f"Custom LLM config {config_id} not found; falling back to provider "
+                f"{custom_llm_config.get('id')} ({custom_llm_config.get('name')})"
+            )
+
     return setup_llm(
         model_name,
         openai_api_key=(openai_p or {}).get("apiKey"),
@@ -488,6 +506,7 @@ def _build_llm_with_model_for_user(model_name: str, user_id: Optional[str]):
         aws_access_key_id=(bedrock_p or {}).get("awsAccessKeyId"),
         aws_secret_access_key=(bedrock_p or {}).get("awsSecretKey"),
         aws_region=(bedrock_p or {}).get("awsRegion") or "us-east-1",
+        custom_llm_config=custom_llm_config,
     )
 
 

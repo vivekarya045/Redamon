@@ -76,11 +76,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm /tmp/composer-setup.php
 
 # Install .NET 8 SDK (for C# projects)
-RUN apt-get update && apt-get install -y --no-install-recommends libicu-dev && rm -rf /var/lib/apt/lists/* \
+RUN apt-get update && apt-get install -y --no-install-recommends libicu-dev \
+    && . /etc/os-release \
     && retry curl -fsSL --retry 5 --retry-delay 5 --retry-all-errors \
-        -o /tmp/dotnet-install.sh https://dot.net/v1/dotnet-install.sh \
-    && bash /tmp/dotnet-install.sh --channel 8.0 --install-dir /usr/share/dotnet \
-    && rm /tmp/dotnet-install.sh \
+        -o /tmp/packages-microsoft-prod.deb https://packages.microsoft.com/config/debian/${VERSION_ID}/packages-microsoft-prod.deb \
+    && dpkg -i /tmp/packages-microsoft-prod.deb \
+    && rm /tmp/packages-microsoft-prod.deb \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends dotnet-sdk-8.0 \
+    && rm -rf /var/lib/apt/lists/* \
     && ln -s /usr/share/dotnet/dotnet /usr/local/bin/dotnet
 ENV DOTNET_ROOT="/usr/share/dotnet"
 
@@ -90,11 +94,16 @@ COPY agentic/requirements.txt .
 COPY agentic/requirements-kb.txt .
 
 # Core Python dependencies (always installed)
-RUN pip install --no-cache-dir -r requirements.txt
+RUN retry pip install --no-cache-dir --retries 5 --timeout 120 -r requirements.txt
 
 # Install uv (~10 MB) for stdio Python-ecosystem MCP servers (`uvx mcp-...`).
 # Lets users add stdio MCPs via the Settings UI without rebuilding the image.
-RUN pip install --no-cache-dir uv
+# Download once into a local wheelhouse, then install from local artifact so
+# transient index/metadata failures don't break this layer.
+RUN mkdir -p /tmp/wheelhouse \
+    && retry pip download --no-cache-dir --retries 5 --timeout 120 --only-binary=:all: --dest /tmp/wheelhouse uv \
+    && pip install --no-cache-dir /tmp/wheelhouse/uv-*.whl \
+    && rm -rf /tmp/wheelhouse
 
 # Build arg: set to "true" to skip heavy KB dependencies (~4.4 GB saved)
 # Use ./redamon.sh install --skipkbase to activate
@@ -104,7 +113,7 @@ ARG SKIP_KB=false
 # KB heavy dependencies: torch, sentence-transformers, faiss-cpu
 # Skipped when SKIP_KB=true (--skipkbase flag)
 RUN if [ "$SKIP_KB" != "true" ]; then \
-        pip install --no-cache-dir -r requirements-kb.txt; \
+    retry pip install --no-cache-dir --retries 5 --timeout 120 -r requirements-kb.txt; \
     fi
 
 # Pre-download the embedding model (~1.3 GB) unless KB is skipped.

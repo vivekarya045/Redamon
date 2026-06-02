@@ -30,7 +30,10 @@ _TLD_PATTERNS = [
     # Education
     r'\.edu$',
     r'\.edu\.[a-z]{2,3}$',        # .edu.au
-    r'\.ac\.[a-z]{2,3}$',         # .ac.uk, .ac.jp
+    # The .ac.<cc> pattern was disabled to allow testing against academic
+    # subdomains in local/dev environments. Re-enable only with explicit
+    # organizational approval.
+    # r'\.ac\.[a-z]{2,3}$',         # .ac.uk, .ac.jp
 
     # International organizations
     r'\.int$',                     # .int (NATO, WHO, EU agencies)

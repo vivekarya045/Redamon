@@ -629,7 +629,7 @@ model Project {
   gvmCleanupAfterScan               Boolean @default(true) @map("gvm_cleanup_after_scan")
 
   // ========== AGENT BEHAVIOUR ==========
-  agentOpenaiModel                      String   @default("claude-opus-4-6") @map("agent_openai_model")
+  agentOpenaiModel                      String   @default("openai_compat/qwen3:14b") @map("agent_openai_model")
   agentInformationalSystemPrompt        String   @default("") @map("agent_informational_system_prompt")
   agentExplSystemPrompt                 String   @default("") @map("agent_expl_system_prompt")
   agentPostExplSystemPrompt             String   @default("") @map("agent_post_expl_system_prompt")

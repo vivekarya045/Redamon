@@ -190,7 +190,7 @@ def _do_ingestion(
 
     # Neo4j setup
     neo4j_loader = None
-    neo4j_uri = neo4j_uri or os.getenv("NEO4J_URI", "bolt://localhost:7687")
+    neo4j_uri = neo4j_uri or os.getenv("NEO4J_URI", "bolt://localhost:17687")
     neo4j_user = neo4j_user or os.getenv("NEO4J_USER", "neo4j")
     # NEO4J_PASSWORD must be provided explicitly via env var or function arg.
     neo4j_password = neo4j_password or os.getenv("NEO4J_PASSWORD")
@@ -444,7 +444,7 @@ def print_stats(kb_path: str = None, neo4j_uri: str = None, neo4j_user: str = No
                         print(f"  File cache [{source_dir.name}]: <unreadable: {e}>")
 
     # Neo4j stats
-    neo4j_uri = neo4j_uri or os.getenv("NEO4J_URI", "bolt://localhost:7687")
+    neo4j_uri = neo4j_uri or os.getenv("NEO4J_URI", "bolt://localhost:17687")
     neo4j_user = neo4j_user or os.getenv("NEO4J_USER", "neo4j")
     # No default password fallback. Print clear error if not set.
     neo4j_password = neo4j_password or os.getenv("NEO4J_PASSWORD")

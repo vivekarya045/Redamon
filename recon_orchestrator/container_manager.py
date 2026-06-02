@@ -227,7 +227,7 @@ class ContainerManager:
                     # Custom nuclei templates host path (for sibling nuclei container volume mount)
                     "HOST_CUSTOM_TEMPLATES_PATH": custom_templates_path,
                     # Forward credentials from orchestrator environment
-                    "NEO4J_URI": os.environ.get("NEO4J_URI", "bolt://localhost:7687"),
+                    "NEO4J_URI": os.environ.get("NEO4J_URI", "bolt://localhost:17687"),
                     "NEO4J_USER": os.environ.get("NEO4J_USER", "neo4j"),
                     "NEO4J_PASSWORD": os.environ.get("NEO4J_PASSWORD", ""),
                     "INTERNAL_API_KEY": os.environ.get("INTERNAL_API_KEY", ""),
@@ -744,7 +744,7 @@ class ContainerManager:
                     # sibling nuclei container. Without it, custom-template selection
                     # is silently dropped and the full built-in pool runs instead.
                     "HOST_CUSTOM_TEMPLATES_PATH": custom_templates_path,
-                    "NEO4J_URI": os.environ.get("NEO4J_URI", "bolt://localhost:7687"),
+                    "NEO4J_URI": os.environ.get("NEO4J_URI", "bolt://localhost:17687"),
                     "NEO4J_USER": os.environ.get("NEO4J_USER", "neo4j"),
                     "NEO4J_PASSWORD": os.environ.get("NEO4J_PASSWORD", ""),
                     "INTERNAL_API_KEY": os.environ.get("INTERNAL_API_KEY", ""),
@@ -1065,7 +1065,7 @@ class ContainerManager:
                     "WEBAPP_API_URL": webapp_api_url,
                     "PYTHONUNBUFFERED": "1",
                     # Forward Neo4j credentials from orchestrator environment
-                    "NEO4J_URI": os.environ.get("NEO4J_URI", "bolt://localhost:7687"),
+                    "NEO4J_URI": os.environ.get("NEO4J_URI", "bolt://localhost:17687"),
                     "NEO4J_USER": os.environ.get("NEO4J_USER", "neo4j"),
                     "NEO4J_PASSWORD": os.environ.get("NEO4J_PASSWORD", ""),
                     "INTERNAL_API_KEY": os.environ.get("INTERNAL_API_KEY", ""),
@@ -1453,7 +1453,7 @@ class ContainerManager:
                     "WEBAPP_API_URL": webapp_api_url,
                     "PYTHONUNBUFFERED": "1",
                     # Forward Neo4j credentials from orchestrator environment
-                    "NEO4J_URI": os.environ.get("NEO4J_URI", "bolt://localhost:7687"),
+                    "NEO4J_URI": os.environ.get("NEO4J_URI", "bolt://localhost:17687"),
                     "NEO4J_USER": os.environ.get("NEO4J_USER", "neo4j"),
                     "NEO4J_PASSWORD": os.environ.get("NEO4J_PASSWORD", ""),
                     "INTERNAL_API_KEY": os.environ.get("INTERNAL_API_KEY", ""),
@@ -1827,7 +1827,7 @@ class ContainerManager:
                     "WEBAPP_API_URL": webapp_api_url,
                     "PYTHONUNBUFFERED": "1",
                     # Forward Neo4j credentials from orchestrator environment
-                    "NEO4J_URI": os.environ.get("NEO4J_URI", "bolt://localhost:7687"),
+                    "NEO4J_URI": os.environ.get("NEO4J_URI", "bolt://localhost:17687"),
                     "NEO4J_USER": os.environ.get("NEO4J_USER", "neo4j"),
                     "NEO4J_PASSWORD": os.environ.get("NEO4J_PASSWORD", ""),
                     "INTERNAL_API_KEY": os.environ.get("INTERNAL_API_KEY", ""),

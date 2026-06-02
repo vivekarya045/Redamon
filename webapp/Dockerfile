@@ -45,6 +45,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN groupadd --system --gid 1001 nodejs
 RUN useradd --system --uid 1001 --gid nodejs --no-create-home nextjs
 
+# Retry helper for transient network failures in the runner stage.
+RUN printf '#!/bin/sh\nmax=5; n=0; until "$@"; do n=$((n+1)); [ $n -ge $max ] && exit 1; echo "Retry $n/$max ..."; sleep $((n*5)); done\n' \
+    > /usr/local/bin/retry && chmod +x /usr/local/bin/retry
+
 COPY --from=builder /app/public ./public
 
 RUN mkdir .next
@@ -67,7 +71,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/prisma/package.json /tmp/prisma-pkg.json
 RUN PRISMA_VER=$(node -p "require('/tmp/prisma-pkg.json').version") && \
-    npm install --no-save "prisma@${PRISMA_VER}" bcryptjs && \
+    retry npm install --no-save --fetch-retries=5 --fetch-timeout=120000 --fetch-retry-mintimeout=20000 --fetch-retry-maxtimeout=120000 "prisma@${PRISMA_VER}" bcryptjs && \
     npm cache clean --force && rm /tmp/prisma-pkg.json
 
 # Entrypoint: sync schema to PostgreSQL, then start server
