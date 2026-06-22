@@ -1,20 +1,30 @@
 # =============================================================================
-# RedAmon - Unified Docker Compose
+# RedAmon - Unified Docker Compose (OPTIMIZED MINIMAL DISK)
 # =============================================================================
+# Optimized for minimal disk space deployments (~20-30GB vs 100GB+ full stack)
+#
+# DISABLED SERVICES (comment out to restore):
+#   - GVM/OpenVAS Stack (gvm-vt, gvm-scap-data, gvm-cert-bund-data, etc.) ~30-40GB
+#   - Kali Sandbox (kali-sandbox) ~15-20GB
+#   - Knowledge Base Refresh (kb-refresh) ~5GB
+#   - Knowledge Base in Agent (SKIP_KB=true, KB_ENABLED=false) ~10GB
+#
+# ACTIVE SERVICES:
+#   - PostgreSQL (database)
+#   - Neo4j (graph database)
+#   - Webapp (frontend)
+#   - Agent (backend AI/automation)
+#   - Recon Orchestrator (orchestration)
+#
 # Start:  docker compose up -d
 # Stop:   docker compose down
 # Logs:   docker compose logs -f
-# Build:  docker compose --profile tools build
-# GVM:    Starts automatically with `docker compose up -d`
-#         (first run takes ~10-15 min for feed sync)
-#         Default credentials: admin / admin (auto-created by gvmd)
-#         Change password: docker compose exec -u gvmd gvmd gvmd --user=admin --new-password='<password>'
 # =============================================================================
 
 services:
 
   # ===========================================================================
-  # Databases
+  # Databases (REQUIRED)
   # ===========================================================================
 
   postgres:
@@ -65,160 +75,156 @@ services:
 
   # ===========================================================================
   # GVM / OpenVAS — Vulnerability Scanner Stack
-  # Starts automatically with the rest of the stack
+  # DISABLED: Uncomment to enable (~30-40GB)
   # ===========================================================================
 
-  # --- Data containers (init-only, exit after populating volumes) ---
+  # gvm-vt:
+  #   image: registry.community.greenbone.net/community/vulnerability-tests
+  #   container_name: redamon-gvm-vt
+  #   environment:
+  #     FEED_RELEASE: "24.10"
+  #   volumes:
+  #     - vt_data:/mnt
 
-  gvm-vt:
-    image: registry.community.greenbone.net/community/vulnerability-tests
-    container_name: redamon-gvm-vt
-    environment:
-      FEED_RELEASE: "24.10"
-    volumes:
-      - vt_data:/mnt
+  # gvm-notus-data:
+  #   image: registry.community.greenbone.net/community/notus-data
+  #   container_name: redamon-gvm-notus-data
+  #   volumes:
+  #     - notus_data:/mnt
 
-  gvm-notus-data:
-    image: registry.community.greenbone.net/community/notus-data
-    container_name: redamon-gvm-notus-data
-    volumes:
-      - notus_data:/mnt
+  # gvm-scap-data:
+  #   image: registry.community.greenbone.net/community/scap-data
+  #   container_name: redamon-gvm-scap-data
+  #   volumes:
+  #     - scap_data:/mnt
 
-  gvm-scap-data:
-    image: registry.community.greenbone.net/community/scap-data
-    container_name: redamon-gvm-scap-data
-    volumes:
-      - scap_data:/mnt
+  # gvm-cert-bund-data:
+  #   image: registry.community.greenbone.net/community/cert-bund-data
+  #   container_name: redamon-gvm-cert-data
+  #   volumes:
+  #     - cert_data:/mnt
 
-  gvm-cert-bund-data:
-    image: registry.community.greenbone.net/community/cert-bund-data
-    container_name: redamon-gvm-cert-data
-    volumes:
-      - cert_data:/mnt
+  # gvm-dfn-cert-data:
+  #   image: registry.community.greenbone.net/community/dfn-cert-data
+  #   container_name: redamon-gvm-dfn-cert
+  #   volumes:
+  #     - cert_data:/mnt
+  #   depends_on:
+  #     - gvm-cert-bund-data
 
-  gvm-dfn-cert-data:
-    image: registry.community.greenbone.net/community/dfn-cert-data
-    container_name: redamon-gvm-dfn-cert
-    volumes:
-      - cert_data:/mnt
-    depends_on:
-      - gvm-cert-bund-data
+  # gvm-data-objects:
+  #   image: registry.community.greenbone.net/community/data-objects
+  #   container_name: redamon-gvm-data-objects
+  #   environment:
+  #     FEED_RELEASE: "24.10"
+  #   volumes:
+  #     - data_objects:/mnt
 
-  gvm-data-objects:
-    image: registry.community.greenbone.net/community/data-objects
-    container_name: redamon-gvm-data-objects
-    environment:
-      FEED_RELEASE: "24.10"
-    volumes:
-      - data_objects:/mnt
+  # gvm-report-formats:
+  #   image: registry.community.greenbone.net/community/report-formats
+  #   container_name: redamon-gvm-report-formats
+  #   environment:
+  #     FEED_RELEASE: "24.10"
+  #   volumes:
+  #     - data_objects:/mnt
+  #   depends_on:
+  #     - gvm-data-objects
 
-  gvm-report-formats:
-    image: registry.community.greenbone.net/community/report-formats
-    container_name: redamon-gvm-report-formats
-    environment:
-      FEED_RELEASE: "24.10"
-    volumes:
-      - data_objects:/mnt
-    depends_on:
-      - gvm-data-objects
+  # gvm-gpg-data:
+  #   image: registry.community.greenbone.net/community/gpg-data
+  #   container_name: redamon-gvm-gpg-data
+  #   volumes:
+  #     - gpg_data:/mnt
 
-  gvm-gpg-data:
-    image: registry.community.greenbone.net/community/gpg-data
-    container_name: redamon-gvm-gpg-data
-    volumes:
-      - gpg_data:/mnt
+  # gvm-redis:
+  #   image: registry.community.greenbone.net/community/redis-server:stable
+  #   container_name: redamon-gvm-redis
+  #   restart: on-failure
+  #   volumes:
+  #     - gvm_redis_socket:/run/redis/
 
-  # --- GVM runtime services ---
+  # gvm-postgres-init:
+  #   image: alpine:3.20
+  #   container_name: redamon-gvm-postgres-init
+  #   volumes:
+  #     - gvm_psql_data:/var/lib/postgresql
+  #     - gvm_psql_socket:/var/run/postgresql
+  #   entrypoint: ["/bin/sh", "-c", "rm -f /var/run/postgresql/.s.PGSQL.5432.lock /var/run/postgresql/.s.PGSQL.5432 /var/lib/postgresql/17/main/postmaster.pid && echo 'Cleaned stale PG locks'"]
 
-  gvm-redis:
-    image: registry.community.greenbone.net/community/redis-server:stable
-    container_name: redamon-gvm-redis
-    restart: on-failure
-    volumes:
-      - gvm_redis_socket:/run/redis/
+  # gvm-postgres:
+  #   image: registry.community.greenbone.net/community/pg-gvm:stable
+  #   container_name: redamon-gvm-postgres
+  #   restart: on-failure
+  #   volumes:
+  #     - gvm_psql_data:/var/lib/postgresql
+  #     - gvm_psql_socket:/var/run/postgresql
+  #   depends_on:
+  #     gvm-postgres-init:
+  #       condition: service_completed_successfully
 
-  gvm-postgres-init:
-    image: alpine:3.20
-    container_name: redamon-gvm-postgres-init
-    volumes:
-      - gvm_psql_data:/var/lib/postgresql
-      - gvm_psql_socket:/var/run/postgresql
-    entrypoint: ["/bin/sh", "-c", "rm -f /var/run/postgresql/.s.PGSQL.5432.lock /var/run/postgresql/.s.PGSQL.5432 /var/lib/postgresql/17/main/postmaster.pid && echo 'Cleaned stale PG locks'"]
+  # gvmd:
+  #   image: registry.community.greenbone.net/community/gvmd:stable
+  #   container_name: redamon-gvm-gvmd
+  #   restart: on-failure
+  #   volumes:
+  #     - gvmd_data:/var/lib/gvm
+  #     - scap_data:/var/lib/gvm/scap-data/
+  #     - cert_data:/var/lib/gvm/cert-data
+  #     - data_objects:/var/lib/gvm/data-objects/gvmd
+  #     - vt_data:/var/lib/openvas/plugins
+  #     - gvm_psql_data:/var/lib/postgresql
+  #     - gvmd_socket:/run/gvmd
+  #     - ospd_socket:/run/ospd
+  #     - gvm_psql_socket:/var/run/postgresql
+  #   depends_on:
+  #     gvm-postgres:
+  #       condition: service_started
+  #     gvm-scap-data:
+  #       condition: service_completed_successfully
+  #     gvm-cert-bund-data:
+  #       condition: service_completed_successfully
+  #     gvm-dfn-cert-data:
+  #       condition: service_completed_successfully
+  #     gvm-data-objects:
+  #       condition: service_completed_successfully
+  #     gvm-report-formats:
+  #       condition: service_completed_successfully
 
-  gvm-postgres:
-    image: registry.community.greenbone.net/community/pg-gvm:stable
-    container_name: redamon-gvm-postgres
-    restart: on-failure
-    volumes:
-      - gvm_psql_data:/var/lib/postgresql
-      - gvm_psql_socket:/var/run/postgresql
-    depends_on:
-      gvm-postgres-init:
-        condition: service_completed_successfully
-
-  gvmd:
-    image: registry.community.greenbone.net/community/gvmd:stable
-    container_name: redamon-gvm-gvmd
-    restart: on-failure
-    volumes:
-      - gvmd_data:/var/lib/gvm
-      - scap_data:/var/lib/gvm/scap-data/
-      - cert_data:/var/lib/gvm/cert-data
-      - data_objects:/var/lib/gvm/data-objects/gvmd
-      - vt_data:/var/lib/openvas/plugins
-      - gvm_psql_data:/var/lib/postgresql
-      - gvmd_socket:/run/gvmd
-      - ospd_socket:/run/ospd
-      - gvm_psql_socket:/var/run/postgresql
-    depends_on:
-      gvm-postgres:
-        condition: service_started
-      gvm-scap-data:
-        condition: service_completed_successfully
-      gvm-cert-bund-data:
-        condition: service_completed_successfully
-      gvm-dfn-cert-data:
-        condition: service_completed_successfully
-      gvm-data-objects:
-        condition: service_completed_successfully
-      gvm-report-formats:
-        condition: service_completed_successfully
-
-  gvm-ospd:
-    image: registry.community.greenbone.net/community/ospd-openvas:stable
-    container_name: redamon-gvm-ospd
-    restart: on-failure
-    hostname: ospd-openvas.local
-    cap_add:
-      - NET_ADMIN
-      - NET_RAW
-    security_opt:
-      - seccomp=unconfined
-      - apparmor=unconfined
-    command:
-      [
-        "ospd-openvas",
-        "-f",
-        "--config",
-        "/etc/gvm/ospd-openvas.conf",
-        "--notus-feed-dir",
-        "/var/lib/notus/advisories",
-        "-m",
-        "666",
-      ]
-    volumes:
-      - gpg_data:/etc/openvas/gnupg
-      - vt_data:/var/lib/openvas/plugins
-      - notus_data:/var/lib/notus
-      - ospd_socket:/run/ospd
-      - gvm_redis_socket:/run/redis/
-    depends_on:
-      gvm-redis:
-        condition: service_started
-      gvm-gpg-data:
-        condition: service_completed_successfully
-      gvm-vt:
-        condition: service_completed_successfully
+  # gvm-ospd:
+  #   image: registry.community.greenbone.net/community/ospd-openvas:stable
+  #   container_name: redamon-gvm-ospd
+  #   restart: on-failure
+  #   hostname: ospd-openvas.local
+  #   cap_add:
+  #     - NET_ADMIN
+  #     - NET_RAW
+  #   security_opt:
+  #     - seccomp=unconfined
+  #     - apparmor=unconfined
+  #   command:
+  #     [
+  #       "ospd-openvas",
+  #       "-f",
+  #       "--config",
+  #       "/etc/gvm/ospd-openvas.conf",
+  #       "--notus-feed-dir",
+  #       "/var/lib/notus/advisories",
+  #       "-m",
+  #       "666",
+  #     ]
+  #   volumes:
+  #     - gpg_data:/etc/openvas/gnupg
+  #     - vt_data:/var/lib/openvas/plugins
+  #     - notus_data:/var/lib/notus
+  #     - ospd_socket:/run/ospd
+  #     - gvm_redis_socket:/run/redis/
+  #   depends_on:
+  #     gvm-redis:
+  #       condition: service_started
+  #     gvm-gpg-data:
+  #       condition: service_completed_successfully
+  #     gvm-vt:
+  #       condition: service_completed_successfully
 
   # ===========================================================================
   # Recon Scanner Image (build only — not a running service)
@@ -317,80 +323,87 @@ services:
     networks:
       - redamon
 
-  kali-sandbox:
-    build:
-      context: ./mcp
-      dockerfile: kali-sandbox/Dockerfile
-      network: host
-    container_name: redamon-kali
-    dns:
-      - 8.8.8.8
-      - 8.8.4.4
-    hostname: kali-sandbox
-    cap_add:
-      - NET_ADMIN
-      - NET_RAW
-      - SYS_PTRACE
-    security_opt:
-      - seccomp:unconfined
-    ports:
-      - "${MCP_NETWORK_RECON_PORT:-8000}:8000"
-      - "${MCP_NUCLEI_PORT:-8002}:8002"
-      - "${MCP_METASPLOIT_PORT:-8003}:8003"
-      - "${MCP_NMAP_PORT:-8004}:8004"
-      - "${MCP_PLAYWRIGHT_PORT:-8005}:8005"
-      - "8013:8013"
-      - "8014:8014"
-      - "4444:4444"
-      - "4040:4040"
-      - "8015:8015"
-      - "127.0.0.1:8016:8016"
-    volumes:
-      - ./mcp/servers:/opt/mcp_servers
-      - ./mcp/output:/opt/output
-      - ./mcp/nuclei-templates:/opt/nuclei-templates:ro
-      # Shared tenant_filter.py used by the redagraph CLI
-      - ./graph_db:/opt/graph_db:ro
-    environment:
-      PYTHONUNBUFFERED: "1"
-      PYTHONPATH: /opt:/opt/mcp_servers
-      MCP_TRANSPORT: sse
-      MCP_HOST: 0.0.0.0
-      NETWORK_RECON_PORT: "8000"
-      NUCLEI_PORT: "8002"
-      METASPLOIT_PORT: "8003"
-      NMAP_PORT: "8004"
-      PLAYWRIGHT_PORT: "8005"
-      MSF_PROGRESS_PORT: "8013"
-      HYDRA_PROGRESS_PORT: "8014"
-      MSF_AUTO_UPDATE: "${MSF_AUTO_UPDATE:-true}"
-      NUCLEI_AUTO_UPDATE: "${NUCLEI_AUTO_UPDATE:-true}"
-      TERMINAL_WS_PORT: "8016"
-      # Webapp API for fetching tunnel config from Global Settings on boot
-      WEBAPP_API_URL: http://webapp:3000
-      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-changeme}
-      # redagraph CLI — graph DB + agent endpoints
-      NEO4J_URI: bolt://neo4j:7687
-      NEO4J_USER: neo4j
-      NEO4J_PASSWORD: ${NEO4J_PASSWORD:-changeme123}
-      REDAMON_AGENT_URL: http://agent:8080
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "python3", "-c", "import socket; s=socket.socket(); s.connect(('localhost', 8000)); s.close()"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 180s
-    networks:
-      redamon:
-      pentest-net:
+  # ===========================================================================
+  # Kali Sandbox (Model Context Protocol MCP servers)
+  # DISABLED: Uncomment to enable (~15-20GB)
+  # ===========================================================================
+
+  # kali-sandbox:
+  #   build:
+  #     context: ./mcp
+  #     dockerfile: kali-sandbox/Dockerfile
+  #     network: host
+  #   container_name: redamon-kali
+  #   dns:
+  #     - 8.8.8.8
+  #     - 8.8.4.4
+  #   hostname: kali-sandbox
+  #   cap_add:
+  #     - NET_ADMIN
+  #     - NET_RAW
+  #     - SYS_PTRACE
+  #   security_opt:
+  #     - seccomp:unconfined
+  #   ports:
+  #     - "${MCP_NETWORK_RECON_PORT:-8000}:8000"
+  #     - "${MCP_NUCLEI_PORT:-8002}:8002"
+  #     - "${MCP_METASPLOIT_PORT:-8003}:8003"
+  #     - "${MCP_NMAP_PORT:-8004}:8004"
+  #     - "${MCP_PLAYWRIGHT_PORT:-8005}:8005"
+  #     - "8013:8013"
+  #     - "8014:8014"
+  #     - "4444:4444"
+  #     - "4040:4040"
+  #     - "8015:8015"
+  #     - "127.0.0.1:8016:8016"
+  #   volumes:
+  #     - ./mcp/servers:/opt/mcp_servers
+  #     - ./mcp/output:/opt/output
+  #     - ./mcp/nuclei-templates:/opt/nuclei-templates:ro
+  #     - ./graph_db:/opt/graph_db:ro
+  #   environment:
+  #     PYTHONUNBUFFERED: "1"
+  #     PYTHONPATH: /opt:/opt/mcp_servers
+  #     MCP_TRANSPORT: sse
+  #     MCP_HOST: 0.0.0.0
+  #     NETWORK_RECON_PORT: "8000"
+  #     NUCLEI_PORT: "8002"
+  #     METASPLOIT_PORT: "8003"
+  #     NMAP_PORT: "8004"
+  #     PLAYWRIGHT_PORT: "8005"
+  #     MSF_PROGRESS_PORT: "8013"
+  #     HYDRA_PROGRESS_PORT: "8014"
+  #     MSF_AUTO_UPDATE: "${MSF_AUTO_UPDATE:-true}"
+  #     NUCLEI_AUTO_UPDATE: "${NUCLEI_AUTO_UPDATE:-true}"
+  #     TERMINAL_WS_PORT: "8016"
+  #     WEBAPP_API_URL: http://webapp:3000
+  #     INTERNAL_API_KEY: ${INTERNAL_API_KEY:-changeme}
+  #     NEO4J_URI: bolt://neo4j:7687
+  #     NEO4J_USER: neo4j
+  #     NEO4J_PASSWORD: ${NEO4J_PASSWORD:-changeme123}
+  #     REDAMON_AGENT_URL: http://agent:8080
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD", "python3", "-c", "import socket; s=socket.socket(); s.connect(('localhost', 8000)); s.close()"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 180s
+  #   networks:
+  #     redamon:
+  #     pentest-net:
+
+  # ===========================================================================
+  # Agent (Backend AI/Automation)
+  # OPTIMIZED: Knowledge Base disabled (SKIP_KB=true, KB_ENABLED=false)
+  # ===========================================================================
 
   agent:
     build:
       context: .
       dockerfile: agentic/Dockerfile
       args:
-        SKIP_KB: "${SKIP_KB:-false}"
+        SKIP_KB: "true"
     container_name: redamon-agent
     env_file:
       - path: .env
@@ -406,19 +419,20 @@ services:
       WS_HEARTBEAT_INTERVAL: "30"
       WS_TIMEOUT: "300"
       WS_MAX_MESSAGE_SIZE: "10485760"
-      # MCP tool servers (internal docker network)
-      MCP_NETWORK_RECON_URL: http://kali-sandbox:8000/sse
-      MCP_NMAP_URL: http://kali-sandbox:8004/sse
-      MCP_METASPLOIT_URL: http://kali-sandbox:8003/sse
-      MCP_PLAYWRIGHT_URL: http://kali-sandbox:8005/sse
-      MCP_METASPLOIT_PROGRESS_URL: http://kali-sandbox:8013/progress
-      MCP_HYDRA_PROGRESS_URL: http://kali-sandbox:8014/progress
-      KALI_TERMINAL_WS_URL: ws://kali-sandbox:8016
+      # MCP tool servers (DISABLED - kali-sandbox commented out)
+      # Uncomment these if you enable kali-sandbox:
+      # MCP_NETWORK_RECON_URL: http://kali-sandbox:8000/sse
+      # MCP_NMAP_URL: http://kali-sandbox:8004/sse
+      # MCP_METASPLOIT_URL: http://kali-sandbox:8003/sse
+      # MCP_PLAYWRIGHT_URL: http://kali-sandbox:8005/sse
+      # MCP_METASPLOIT_PROGRESS_URL: http://kali-sandbox:8013/progress
+      # MCP_HYDRA_PROGRESS_URL: http://kali-sandbox:8014/progress
+      # KALI_TERMINAL_WS_URL: ws://kali-sandbox:8016
       # Webapp API (internal docker network)
       WEBAPP_API_URL: http://webapp:3000
       INTERNAL_API_KEY: ${INTERNAL_API_KEY:-changeme}
-      # Knowledge Base
-      KB_ENABLED: "${KB_ENABLED:-true}"
+      # Knowledge Base - DISABLED for minimal deployment
+      KB_ENABLED: "false"
       KB_PATH: /app/knowledge_base/data
       # Fireteam requires AsyncPostgresSaver for safe mid-wave checkpointing.
       PERSISTENT_CHECKPOINTER: "true"
@@ -436,10 +450,10 @@ services:
     depends_on:
       neo4j:
         condition: service_healthy
-      kali-sandbox:
-        condition: service_healthy
       postgres:
         condition: service_healthy
+      # kali-sandbox:
+      #   condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
@@ -452,91 +466,76 @@ services:
 
   # ===========================================================================
   # Knowledge Base Refresh Sidecar
-  # ===========================================================================
-  # Opt-in scheduled refresh for KB data sources. Reuses the agent image so we
-  # don't have to rebuild anything separately. Shares the kb_data volume with
-  # the agent so updates are immediately visible without restarting the agent.
-  #
-  # Schedule:
-  #   - Daily 03:00 UTC: NVD incremental update (~60 new CVEs/day)
-  #   - Mondays 04:00 UTC: ExploitDB + Nuclei templates
-  #   - 1st of month 05:00 UTC: GTFOBins + LOLBAS
-  #
-  # Enable with:
-  #   KB_REFRESH_ENABLED=true docker compose --profile kb-refresh up -d kb-refresh
-  #
-  # Or via redamon.sh once that integration lands. Default is OFF — users opt in.
+  # DISABLED: Opt-in scheduled refresh for KB data sources
+  # Enable with: KB_REFRESH_ENABLED=true docker compose --profile kb-refresh up -d kb-refresh
   # ===========================================================================
 
-  kb-refresh:
-    profiles: ["kb-refresh"]
-    build:
-      context: .
-      dockerfile: agentic/Dockerfile
-    image: redamon-agent
-    container_name: redamon-kb-refresh
-    environment:
-      NEO4J_URI: bolt://neo4j:7687
-      NEO4J_USER: neo4j
-      NEO4J_PASSWORD: ${NEO4J_PASSWORD:-changeme123}
-      KB_PATH: /app/knowledge_base/data
-      NVD_API_KEY: "${NVD_API_KEY:-}"
-    volumes:
-      - ./knowledge_base/kb_config.yaml:/app/knowledge_base/kb_config.yaml:ro
-      - kb_data:/app/knowledge_base/data
-    depends_on:
-      neo4j:
-        condition: service_healthy
-    restart: unless-stopped
-    networks:
-      - redamon
-    # Sleep loop scheduler — runs source updates on cadence.
-    # Production setups should replace this with a real cron container or
-    # external scheduler (host cron, systemd timer, GitHub Actions).
-    command: >
-      sh -c '
-      echo "[KB-REFRESH] sidecar started at $$(date -u +%Y-%m-%dT%H:%M:%SZ)";
-      while true; do
-        DAY_OF_WEEK=$$(date -u +%u);
-        DAY_OF_MONTH=$$(date -u +%d);
-        HOUR=$$(date -u +%H);
-
-        echo "[KB-REFRESH $$(date -u +%Y-%m-%dT%H:%M:%SZ)] daily NVD refresh";
-        python -m knowledge_base.curation.data_ingestion \
-          --source nvd \
-          --neo4j-uri bolt://neo4j:7687 \
-          --neo4j-user neo4j \
-          --neo4j-password $$NEO4J_PASSWORD \
-          $${NVD_API_KEY:+--nvd-key $$NVD_API_KEY} \
-          || echo "[KB-REFRESH] NVD refresh failed";
-
-        if [ "$$DAY_OF_WEEK" = "1" ]; then
-          echo "[KB-REFRESH $$(date -u +%Y-%m-%dT%H:%M:%SZ)] weekly ExploitDB + Nuclei refresh";
-          python -m knowledge_base.curation.data_ingestion --source exploitdb \
-            --neo4j-uri bolt://neo4j:7687 --neo4j-user neo4j --neo4j-password $$NEO4J_PASSWORD \
-            || echo "[KB-REFRESH] ExploitDB refresh failed";
-          python -m knowledge_base.curation.data_ingestion --source nuclei \
-            --neo4j-uri bolt://neo4j:7687 --neo4j-user neo4j --neo4j-password $$NEO4J_PASSWORD \
-            || echo "[KB-REFRESH] Nuclei refresh failed";
-        fi;
-
-        if [ "$$DAY_OF_MONTH" = "01" ]; then
-          echo "[KB-REFRESH $$(date -u +%Y-%m-%dT%H:%M:%SZ)] monthly GTFOBins + LOLBAS refresh";
-          python -m knowledge_base.curation.data_ingestion --source gtfobins \
-            --neo4j-uri bolt://neo4j:7687 --neo4j-user neo4j --neo4j-password $$NEO4J_PASSWORD \
-            || echo "[KB-REFRESH] GTFOBins refresh failed";
-          python -m knowledge_base.curation.data_ingestion --source lolbas \
-            --neo4j-uri bolt://neo4j:7687 --neo4j-user neo4j --neo4j-password $$NEO4J_PASSWORD \
-            || echo "[KB-REFRESH] LOLBAS refresh failed";
-        fi;
-
-        echo "[KB-REFRESH $$(date -u +%Y-%m-%dT%H:%M:%SZ)] sleeping 24h until next refresh";
-        sleep 86400;
-      done
-      '
+  # kb-refresh:
+  #   profiles: ["kb-refresh"]
+  #   build:
+  #     context: .
+  #     dockerfile: agentic/Dockerfile
+  #   image: redamon-agent
+  #   container_name: redamon-kb-refresh
+  #   environment:
+  #     NEO4J_URI: bolt://neo4j:7687
+  #     NEO4J_USER: neo4j
+  #     NEO4J_PASSWORD: ${NEO4J_PASSWORD:-changeme123}
+  #     KB_PATH: /app/knowledge_base/data
+  #     NVD_API_KEY: "${NVD_API_KEY:-}"
+  #   volumes:
+  #     - ./knowledge_base/kb_config.yaml:/app/knowledge_base/kb_config.yaml:ro
+  #     - kb_data:/app/knowledge_base/data
+  #   depends_on:
+  #     neo4j:
+  #       condition: service_healthy
+  #   restart: unless-stopped
+  #   networks:
+  #     - redamon
+  #   command: >
+  #     sh -c '
+  #     echo "[KB-REFRESH] sidecar started at $$(date -u +%Y-%m-%dT%H:%M:%SZ)";
+  #     while true; do
+  #       DAY_OF_WEEK=$$(date -u +%u);
+  #       DAY_OF_MONTH=$$(date -u +%d);
+  #       HOUR=$$(date -u +%H);
+  #
+  #       echo "[KB-REFRESH $$(date -u +%Y-%m-%dT%H:%M:%SZ)] daily NVD refresh";
+  #       python -m knowledge_base.curation.data_ingestion \
+  #         --source nvd \
+  #         --neo4j-uri bolt://neo4j:7687 \
+  #         --neo4j-user neo4j \
+  #         --neo4j-password $$NEO4J_PASSWORD \
+  #         $${NVD_API_KEY:+--nvd-key $$NVD_API_KEY} \
+  #         || echo "[KB-REFRESH] NVD refresh failed";
+  #
+  #       if [ "$$DAY_OF_WEEK" = "1" ]; then
+  #         echo "[KB-REFRESH $$(date -u +%Y-%m-%dT%H:%M:%SZ)] weekly ExploitDB + Nuclei refresh";
+  #         python -m knowledge_base.curation.data_ingestion --source exploitdb \
+  #           --neo4j-uri bolt://neo4j:7687 --neo4j-user neo4j --neo4j-password $$NEO4J_PASSWORD \
+  #           || echo "[KB-REFRESH] ExploitDB refresh failed";
+  #         python -m knowledge_base.curation.data_ingestion --source nuclei \
+  #           --neo4j-uri bolt://neo4j:7687 --neo4j-user neo4j --neo4j-password $$NEO4J_PASSWORD \
+  #           || echo "[KB-REFRESH] Nuclei refresh failed";
+  #       fi;
+  #
+  #       if [ "$$DAY_OF_MONTH" = "01" ]; then
+  #         echo "[KB-REFRESH $$(date -u +%Y-%m-%dT%H:%M:%SZ)] monthly GTFOBins + LOLBAS refresh";
+  #         python -m knowledge_base.curation.data_ingestion --source gtfobins \
+  #           --neo4j-uri bolt://neo4j:7687 --neo4j-user neo4j --neo4j-password $$NEO4J_PASSWORD \
+  #           || echo "[KB-REFRESH] GTFOBins refresh failed";
+  #         python -m knowledge_base.curation.data_ingestion --source lolbas \
+  #           --neo4j-uri bolt://neo4j:7687 --neo4j-user neo4j --neo4j-password $$NEO4J_PASSWORD \
+  #           || echo "[KB-REFRESH] LOLBAS refresh failed";
+  #       fi;
+  #
+  #       echo "[KB-REFRESH $$(date -u +%Y-%m-%dT%H:%M:%SZ)] sleeping 24h until next refresh";
+  #       sleep 86400;
+  #     done
+  #     '
 
   # ===========================================================================
-  # Frontend
+  # Frontend (Webapp)
   # ===========================================================================
 
   webapp:
@@ -629,28 +628,29 @@ volumes:
   tradecraft_cache:
     name: redamon_tradecraft_cache
   # GVM volumes (names must match container_manager.py references)
-  vt_data:
-    name: redamon_vt_data
-  notus_data:
-    name: redamon_notus_data
-  scap_data:
-    name: redamon_scap_data
-  cert_data:
-    name: redamon_cert_data
-  data_objects:
-    name: redamon_data_objects
-  gpg_data:
-    name: redamon_gpg_data
-  gvm_redis_socket:
-    name: redamon_gvm_redis_socket
-  gvm_psql_data:
-    name: redamon_gvm_psql_data
-  gvm_psql_socket:
-    name: redamon_gvm_psql_socket
-  gvmd_data:
-    name: redamon_gvmd_data
-  gvmd_socket:
-    name: redamon_gvmd_socket
-  ospd_socket:
-    name: redamon_ospd_socket
+  # DISABLED - uncomment if enabling GVM services
+  # vt_data:
+  #   name: redamon_vt_data
+  # notus_data:
+  #   name: redamon_notus_data
+  # scap_data:
+  #   name: redamon_scap_data
+  # cert_data:
+  #   name: redamon_cert_data
+  # data_objects:
+  #   name: redamon_data_objects
+  # gpg_data:
+  #   name: redamon_gpg_data
+  # gvm_redis_socket:
+  #   name: redamon_gvm_redis_socket
+  # gvm_psql_data:
+  #   name: redamon_gvm_psql_data
+  # gvm_psql_socket:
+  #   name: redamon_gvm_psql_socket
+  # gvmd_data:
+  #   name: redamon_gvmd_data
+  # gvmd_socket:
+  #   name: redamon_gvmd_socket
+  # ospd_socket:
+  #   name: redamon_ospd_socket
   cypherfix-repos:  # Temp storage for cloned GitHub repos (CodeFix agent)
