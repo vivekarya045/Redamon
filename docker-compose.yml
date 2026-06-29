@@ -137,36 +137,40 @@ services:
     volumes:
       - gvm_redis_socket:/run/redis/
 
-  gvm-postgres-init:
-    image: alpine:3.20
-    container_name: redamon-gvm-postgres-init
-    volumes:
-      - gvm_psql_data:/var/lib/postgresql
-      - gvm_psql_socket:/var/run/postgresql
-    entrypoint: ["/bin/sh", "-c", "rm -f /var/run/postgresql/.s.PGSQL.5432.lock /var/run/postgresql/.s.PGSQL.5432 /var/lib/postgresql/17/main/postmaster.pid && echo 'Cleaned stale PG locks'"]
-
   gvm-postgres:
     image: registry.community.greenbone.net/community/pg-gvm:stable
     container_name: redamon-gvm-postgres
     restart: on-failure
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        rm -f /var/run/postgresql/.s.PGSQL.5432.lock /var/run/postgresql/.s.PGSQL.5432 /var/lib/postgresql/17/main/postmaster.pid
+        echo 'Cleaned stale PG locks'
+        exec /usr/local/bin/entrypoint /usr/local/bin/start-postgresql
     volumes:
       - gvm_psql_data:/var/lib/postgresql
       - gvm_psql_socket:/var/run/postgresql
-    depends_on:
-      gvm-postgres-init:
-        condition: service_completed_successfully
 
   gvmd:
     image: registry.community.greenbone.net/community/gvmd:stable
     container_name: redamon-gvm-gvmd
     restart: on-failure
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        until [ -S /var/run/postgresql/.s.PGSQL.5432 ]; do
+          echo 'Waiting for gvm-postgres socket...'
+          sleep 2
+        done
+        exec /usr/local/bin/entrypoint /usr/local/bin/start-gvmd
     volumes:
       - gvmd_data:/var/lib/gvm
       - scap_data:/var/lib/gvm/scap-data/
       - cert_data:/var/lib/gvm/cert-data
       - data_objects:/var/lib/gvm/data-objects/gvmd
       - vt_data:/var/lib/openvas/plugins
-      - gvm_psql_data:/var/lib/postgresql
       - gvmd_socket:/run/gvmd
       - ospd_socket:/run/ospd
       - gvm_psql_socket:/var/run/postgresql

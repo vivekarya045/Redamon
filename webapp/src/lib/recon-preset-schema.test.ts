@@ -4,7 +4,7 @@
  */
 import { describe, test, expect } from 'vitest'
 import { reconPresetSchema, extractJson, RECON_PARAMETER_CATALOG } from './recon-preset-schema'
-
+import { RECON_PRESETS } from './recon-presets'
 // ============================================================
 // extractJson
 // ============================================================
@@ -417,23 +417,16 @@ describe('reconPresetSchema with realistic LLM output', () => {
 // ============================================================
 
 describe('reconPresetSchema validates all built-in presets', () => {
-  // Import all presets dynamically
-  const presetModules = import.meta.glob('./recon-presets/presets/*.ts', { eager: true })
-
-  for (const [path, mod] of Object.entries(presetModules)) {
-    const presetName = path.replace('./recon-presets/presets/', '').replace('.ts', '')
-    const exported = mod as Record<string, { parameters?: Record<string, unknown> }>
-    const preset = Object.values(exported)[0]
-
+  for (const preset of RECON_PRESETS) {
     if (preset?.parameters) {
-      test(`built-in preset "${presetName}" passes Zod validation`, () => {
+      test(`built-in preset "${preset.id}" passes Zod validation`, () => {
         const result = reconPresetSchema.safeParse(preset.parameters)
         if (!result.success) {
           const issues = result.error.issues.map(
             (i) => `  ${i.path.join('.')}: ${i.message}`,
           )
           throw new Error(
-            `Preset "${presetName}" failed validation:\n${issues.join('\n')}`,
+            `Preset "${preset.id}" failed validation:\n${issues.join('\n')}`,
           )
         }
         expect(result.success).toBe(true)

@@ -13,7 +13,8 @@ langchain-aws>=0.2.0
 boto3>=1.35.0
 
 # MCP integration
-langchain-mcp-adapters>=0.1.0
+langchain-mcp-adapters>=0.3.0
+mcp>=1.28.0
 
 # Neo4j integration
 langchain-community>=0.3.0

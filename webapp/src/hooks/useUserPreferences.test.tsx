@@ -50,8 +50,7 @@ function installFetchMock(handler: (call: FetchCall) => Promise<Response>) {
     calls.push({ url: u, init })
     return handler({ url: u, init })
   })
-  // @ts-expect-error - jsdom global
-  globalThis.fetch = fn
+  globalThis.fetch = fn as typeof fetch
   return { fn, calls }
 }
 

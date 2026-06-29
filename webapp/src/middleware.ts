@@ -3,7 +3,15 @@ import { jwtVerify } from 'jose'
 
 const AUTH_COOKIE_NAME = 'redamon-auth'
 
-const PUBLIC_PATHS = ['/login', '/api/auth/login', '/api/auth/logout', '/api/health']
+const PUBLIC_PATHS = [
+  '/login',
+  '/api/auth/login',
+  '/api/auth/logout',
+  '/api/auth/signup',
+  '/api/auth/forgot-password',
+  '/api/auth/reset-password',
+  '/api/health',
+]
 
 function getSecret() {
   const secret = process.env.AUTH_SECRET

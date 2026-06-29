@@ -225,8 +225,15 @@ def _resolve_auth_header(srv: MCPServer) -> Tuple[Dict[str, str], List[str]]:
     1. ``auth.token`` literal — used verbatim.
     2. ``auth.token_env_var`` resolved via os.getenv (legacy fallback,
        not exposed in the UI form).
+
+    For HTTP MCP transports, seed the standard protocol-friendly defaults
+    expected by streamable HTTP servers unless the user explicitly overrides
+    them in the UI.
     """
-    headers: Dict[str, str] = {}
+    headers: Dict[str, str] = {
+        "Accept": "application/json, text/event-stream",
+        "Content-Type": "application/json",
+    }
     missing: List[str] = []
 
     if srv.headers:

@@ -1420,19 +1420,29 @@ async def test_mcp_server(server: dict):
             f"handshake. stderr: {chosen_str}"
         )
 
-    client = None
     try:
-        client = MultiServerMCPClient(config_dict)
-
         # Open an MCP session and call list_tools at the protocol level.
         # This returns mcp.types.Tool objects with their raw inputSchema
         # JSON dict, exactly as the server published it — works with any
         # MCP-spec-compliant server regardless of how langchain happens
         # to wrap things.
         async def _fetch_raw_tools():
-            async with client.session(srv_obj.id) as session:
-                resp = await session.list_tools()
-                return resp.tools
+            import traceback
+            logger.info("Entered _fetch_raw_tools")
+            try:
+                logger.info("Building MultiServerMCPClient")
+                client = MultiServerMCPClient(config_dict)
+                logger.info("Opening MCP session for %s", srv_obj.id)
+                async with client.session(srv_obj.id) as session:
+                    logger.info("Calling list_tools()")
+                    resp = await session.list_tools()
+                    return resp.tools
+            except Exception as e:
+                logger.exception("MCP discovery failed")
+                logger.error("Exception type: %s", type(e).__name__)
+                logger.error("Exception repr: %r", e)
+                logger.error(traceback.format_exc())
+                raise
 
         raw_tools = await asyncio.wait_for(_fetch_raw_tools(), timeout=30.0)
 

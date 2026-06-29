@@ -96,6 +96,18 @@ function makeReportData(overrides: Partial<ReportData> = {}): ReportData {
       endpoints: [],
       findings: [],
     },
+    vhostSni: {
+      totalFindings: 0,
+      ipsTested: 0,
+      candidatesTested: 0,
+      anomaliesL7: 0,
+      anomaliesL4: 0,
+      reverseProxiesDetected: 0,
+      bySeverity: [],
+      byLayer: [],
+      byType: [],
+      findings: [],
+    },
     otx: {
       totalPulses: 0,
       totalMalware: 0,

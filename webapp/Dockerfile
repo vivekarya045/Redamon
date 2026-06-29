@@ -12,7 +12,7 @@ WORKDIR /app
 
 COPY package.json package-lock.json* ./
 COPY prisma ./prisma
-RUN npm ci --no-audit --no-fund && npm cache clean --force
+RUN npm install --no-audit --no-fund && npm cache clean --force
 
 # Stage 2: Builder
 FROM node:22-slim AS builder
