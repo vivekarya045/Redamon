@@ -22,7 +22,7 @@ AGENT_CONTAINER ?= redamon-agent
 # Default Neo4j connection (override with env vars)
 # In docker mode: connects to neo4j service via internal network
 # In local mode: connects to localhost
-NEO4J_URI ?= bolt://localhost:17687
+NEO4J_URI ?= bolt://localhost:7687
 NEO4J_USER ?= neo4j
 NEO4J_PASSWORD ?= changeme123
 
@@ -322,7 +322,7 @@ kb-help: ## Show this help
 	@echo "  MODEL                             Embedding model (default: intfloat/e5-large-v2)"
 	@echo "  NVD_DAYS                          NVD lookback window in days (default: 730 = 2 years)"
 	@echo "  NVD_API_KEY                       NVD API key (for kb-update-nvd-key)"
-	@echo "  NEO4J_URI                         Neo4j URI (default: bolt://localhost:17687)"
+	@echo "  NEO4J_URI                         Neo4j URI (default: bolt://localhost:7687)"
 	@echo "  NEO4J_USER, NEO4J_PASSWORD        Neo4j credentials"
 	@echo "  AGENT_CONTAINER                   Container name (default: redamon-agent)"
 	@echo ""

@@ -252,7 +252,7 @@ def _is_ip_address(host: str) -> bool:
 
 class Neo4jClient:
     def __init__(self, uri=None, user=None, password=None):
-        self.uri = uri or os.getenv("NEO4J_URI", "bolt://localhost:17687")
+        self.uri = uri or os.getenv("NEO4J_URI", "bolt://localhost:7687")
         self.user = user or os.getenv("NEO4J_USER")
         self.password = password or os.getenv("NEO4J_PASSWORD")
         self.driver = GraphDatabase.driver(self.uri, auth=(self.user, self.password))

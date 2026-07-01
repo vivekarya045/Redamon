@@ -483,6 +483,8 @@ export function ProjectForm({
   // Determine if form can be submitted
   const canSubmit = !isSubmitting && !isLoadingDefaults
 
+  console.log(JSON.stringify(formData));
+
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
       <div className={styles.header}>
